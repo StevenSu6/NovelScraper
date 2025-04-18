@@ -10,6 +10,7 @@ import asyncio
 import io
 import pygame
 import tempfile
+import shutil
 from datetime import datetime
 import keyboard  # 新增引入 keyboard 模組
 from pynput import keyboard  # 新增引入 pynput 模組
@@ -468,6 +469,31 @@ def load_chapters_ui():
     for chapter_name in chapters:
         chapter_listbox.insert(tk.END, chapter_name)
 
+# Function to clear all cached data
+def clear_cache():
+    """
+    清除所有快取資料，包括章節與內容。
+    """
+    global chapters, preloaded_audio, next_chapter_cache
+    chapters.clear()
+    preloaded_audio.clear()
+    next_chapter_cache = None
+    chapter_listbox.delete(0, tk.END)
+    chapter_content_text.delete(1.0, tk.END)
+
+    # 刪除包含 chapters.json 的資料夾
+    for folder_name in os.listdir('.'):
+        folder_path = os.path.join('.', folder_name)
+        if os.path.isdir(folder_path):  # 確保是資料夾
+            chapters_file_path = os.path.join(folder_path, 'chapters.json')
+            if os.path.exists(chapters_file_path):  # 檢查是否存在 chapters.json
+                try:
+                    shutil.rmtree(folder_path)  # 刪除資料夾
+                except Exception as e:
+                    messagebox.showerror("清除快取錯誤", f"無法刪除資料夾 {folder_name}：{e}")
+
+    messagebox.showinfo("清除快取", "所有快取資料已清除！")
+
 # Function to load and display chapter content
 
 def display_chapter_content(event):
@@ -631,6 +657,8 @@ novel_code_entry = tk.Entry(middle_frame)
 novel_code_entry.pack(pady=5, anchor='w')
 load_button = tk.Button(middle_frame, text='載入章節', command=load_chapters_ui)
 load_button.pack(pady=5, anchor='s')
+clear_cache_button = tk.Button(middle_frame, text='清除快取', command=clear_cache)
+clear_cache_button.pack(pady=5, anchor='s')
 
 # 新增：右側區塊
 right_frame = tk.Frame(top_frame, width=300, height=120)
